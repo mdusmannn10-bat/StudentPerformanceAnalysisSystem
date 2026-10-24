@@ -1,0 +1,183 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Profile & Performance Report - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Individual Student Performance Report</h1>
+        <p class="subtitle">Detailed academic evaluation, subject marks breakdown, and official transcript summary.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('manage_students') }}" class="btn btn-outline">&larr; Student Directory</a>
+        {% if report %}
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Performance Report</button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Student Selector Dropdown -->
+<div class="filter-bar">
+    <form method="GET" action="{{ url_for('student_report') }}">
+        <label for="student_id" style="font-weight: 600; color: var(--text-main);">Select Student:</label>
+        <select id="student_id" name="student_id" class="form-control" style="min-width: 340px;" required>
+            <option value="">-- Choose Student Profile --</option>
+            {% for s in students %}
+                <option value="{{ s.student_id }}" {% if selected_student_id == s.student_id|string %}selected{% endif %}>
+                    {{ s.roll_no }} &bull; {{ s.full_name }} (Section {{ s.section or '-' }})
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-accent">Generate Transcript</button>
+    </form>
+</div>
+
+{% if report %}
+<div class="report-card">
+    <div class="report-header">
+        <div>
+            <h2 style="margin: 0; color: var(--primary); font-size: 1.45rem;">Academic Transcript & Performance Evaluation</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 4px 0 0;">Official Institutional Evaluation Record &bull; Student Performance Analysis System</p>
+        </div>
+        <div style="text-align: right;">
+            <span class="badge" style="background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border-color);">
+                Official Transcript
+            </span>
+        </div>
+    </div>
+
+    <!-- Student Profile Metadata Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; background: #f8fafc; padding: 18px 22px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 24px;">
+        <div>
+            <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Student Name</span>
+            <p style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-top: 3px;">{{ report.full_name }}</p>
+        </div>
+        <div>
+            <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Roll Number</span>
+            <p style="font-size: 1.15rem; font-weight: 700; margin-top: 3px;">{{ report.roll_no }}</p>
+        </div>
+        <div>
+            <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Class Section</span>
+            <p style="font-size: 1.15rem; font-weight: 700; margin-top: 3px;">Section {{ report.section }}</p>
+        </div>
+        <div>
+            <span style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Institutional Rank</span>
+            <p style="font-size: 1.15rem; font-weight: 700; margin-top: 3px; color: {% if report.rank != '-' and report.rank <= 3 %}#b45309{% else %}var(--primary){% endif %};">
+                {% if report.rank != '-' %}Rank #{{ report.rank }}{% else %}Unranked{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Cumulative Metrics Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">Total Marks Obtained</div>
+            <div class="kpi-value">{{ report.total_marks }} <span style="font-size: 1rem; color: var(--text-muted);">/ {{ report.max_total }}</span></div>
+            <div class="kpi-desc">Cumulative subject aggregate</div>
+        </div>
+
+        <div class="kpi-card kpi-accent">
+            <div class="kpi-title">Overall Percentage</div>
+            <div class="kpi-value">{{ report.percentage }}%</div>
+            <div class="kpi-desc">Mean course score: {{ report.average_marks }}</div>
+        </div>
+
+        <div class="kpi-card kpi-success">
+            <div class="kpi-title">Letter Grade</div>
+            <div class="kpi-value">
+                <span class="badge {% if report.grade == 'A+' %}badge-grade-aplus{% elif report.grade == 'A' %}badge-grade-a{% elif report.grade == 'B' %}badge-grade-b{% elif report.grade == 'C' %}badge-grade-c{% elif report.grade == 'D' %}badge-grade-d{% elif report.grade == 'E' %}badge-grade-e{% else %}badge-grade-f{% endif %}"
+                      style="font-size: 1.4rem; padding: 2px 14px;">
+                    {{ report.grade }}
+                </span>
+            </div>
+            <div class="kpi-desc">Standard 7-tier scale</div>
+        </div>
+
+        <div class="kpi-card {% if report.status == 'Pass' %}kpi-success{% elif report.status == 'Fail' %}kpi-danger{% else %}kpi-warning{% endif %}">
+            <div class="kpi-title">Academic Result</div>
+            <div class="kpi-value">
+                {% if report.status == 'Pass' %}
+                    <span class="badge badge-pass" style="font-size: 1.25rem; padding: 2px 12px;">PASSED</span>
+                {% elif report.status == 'Fail' %}
+                    <span class="badge badge-fail" style="font-size: 1.25rem; padding: 2px 12px;">FAILED</span>
+                {% else %}
+                    <span class="badge" style="font-size: 1.1rem;">{{ report.status }}</span>
+                {% endif %}
+            </div>
+            <div class="kpi-desc">
+                {% if report.failed_subjects %}
+                    {{ report.failed_subjects|length }} subject backlog(s)
+                {% else %}
+                    All subjects cleared
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Areas Needing Academic Support Box (If Applicable) -->
+    {% if report.failed_subjects or report.percentage < 40.0 and report.max_total > 0 %}
+    <div style="background: var(--danger-bg); border-left: 4px solid var(--danger); padding: 16px 20px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 24px;">
+        <strong style="color: var(--danger-text); font-size: 0.95rem;">⚠️ Academic Support & Mentoring Intervention Required:</strong>
+        <ul style="margin: 8px 0 0 20px; color: var(--danger-text); font-size: 0.88rem;">
+            {% for failed_sub in report.failed_subjects %}
+                <li>Holding course backlog in: <strong>{{ failed_sub }}</strong> (score below passing threshold).</li>
+            {% endfor %}
+            {% if report.percentage < 40.0 %}
+                <li>Overall aggregate ({{ report.percentage }}%) is below the minimum proficiency threshold (40.0%).</li>
+            {% endif %}
+        </ul>
+        <p style="margin-top: 8px; font-size: 0.85rem; color: var(--danger-text);">
+            <strong>Recommended Action:</strong> Immediate enrollment in departmental remedial tutorials and one-on-one faculty mentoring.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Subject Assessment Marks Ledger -->
+    <h3 style="font-size: 1.1rem; color: var(--primary); margin: 28px 0 14px;">Course Assessment Marks Ledger</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject Name</th>
+                    <th>Assessment</th>
+                    <th>Marks Obtained</th>
+                    <th>Maximum Marks</th>
+                    <th>Passing Benchmark</th>
+                    <th>Subject Percentage</th>
+                    <th>Clearance Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mark in report.marks %}
+                <tr>
+                    <td><strong>{{ mark.subject_name }}</strong></td>
+                    <td><span class="badge" style="background: #f1f5f9; color: var(--text-main);">{{ mark.assessment }}</span></td>
+                    <td><strong style="font-size: 1.05rem;">{{ mark.marks_obtained }}</strong></td>
+                    <td>{{ mark.max_marks }}</td>
+                    <td>{{ mark.pass_marks }}</td>
+                    <td>
+                        <strong>{{ (mark.marks_obtained / mark.max_marks * 100)|round(2) }}%</strong>
+                    </td>
+                    <td>
+                        {% if mark.status == 'Pass' %}
+                            <span class="badge badge-pass">Passed</span>
+                        {% else %}
+                            <span class="badge badge-fail">Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                        No assessment marks logged for this student yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif selected_student_id %}
+    <div class="alert alert-warning">No evaluation records found for the selected student.</div>
+{% endif %}
+{% endblock %}

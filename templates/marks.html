@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block title %}Marks Ledger - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Assessment Marks Records</h1>
+        <p class="subtitle">Complete ledger of recorded examination marks, pass benchmarks, and clearance results.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('add_marks') }}" class="btn btn-accent">+ Record Assessment Marks</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" action="{{ url_for('manage_marks') }}">
+        <select name="student_id" class="form-control" style="min-width: 260px;">
+            <option value="">All Students</option>
+            {% for s in students %}
+                <option value="{{ s.student_id }}" {% if selected_student == s.student_id|string %}selected{% endif %}>
+                    {{ s.roll_no }} &bull; {{ s.full_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="subject_id" class="form-control" style="min-width: 240px;">
+            <option value="">All Curriculum Subjects</option>
+            {% for sub in subjects %}
+                <option value="{{ sub.subject_id }}" {% if selected_subject == sub.subject_id|string %}selected{% endif %}>
+                    {{ sub.subject_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+        {% if selected_student or selected_subject %}
+            <a href="{{ url_for('manage_marks') }}" class="btn btn-outline">Clear Filters</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Marks Ledger Table -->
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 60px;">ID</th>
+                <th>Roll No</th>
+                <th>Student Name</th>
+                <th>Subject</th>
+                <th>Assessment Iteration</th>
+                <th>Marks Obtained</th>
+                <th>Result</th>
+                <th style="text-align: right;">Operations</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in marks %}
+            <tr>
+                <td>{{ m.mark_id }}</td>
+                <td><strong style="color: var(--primary);">{{ m.roll_no }}</strong></td>
+                <td>{{ m.full_name }}</td>
+                <td><strong>{{ m.subject_name }}</strong></td>
+                <td><span class="badge" style="background: #f1f5f9; color: var(--text-main);">{{ m.assessment }}</span></td>
+                <td>
+                    <strong style="font-size: 1.02rem;">{{ m.marks_obtained }}</strong> / {{ m.max_marks }}
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block;">Pass req: {{ m.pass_marks }}</small>
+                </td>
+                <td>
+                    {% if m.status == 'Pass' %}
+                        <span class="badge badge-pass">Passed</span>
+                    {% else %}
+                        <span class="badge badge-fail">Failed</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">
+                    <div class="btn-group" style="justify-content: flex-end;">
+                        <a href="{{ url_for('edit_marks', mark_id=m.mark_id) }}" class="btn btn-secondary btn-sm" title="Edit Assessment Marks">
+                            Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_marks', mark_id=m.mark_id) }}"
+                              onsubmit="return confirm('Delete this marks entry for \'{{ m.full_name }}\' in \'{{ m.subject_name }}\' ({{ m.assessment }})?');"
+                              style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Marks Entry">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 36px 20px;">
+                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">No marks records found</div>
+                    <p style="font-size: 0.9rem;">No assessment entries match the selected filter criteria.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

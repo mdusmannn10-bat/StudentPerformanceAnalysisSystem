@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Marks - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="page-header" style="margin-bottom: 20px;">
+        <div>
+            <h1>Edit Marks Record</h1>
+            <p class="subtitle">Modify assessment score for <strong>{{ mark.full_name }}</strong> in <strong>{{ mark.subject_name }}</strong>.</p>
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <div class="form-card" style="max-width: 100%;">
+        <form method="POST" action="{{ url_for('edit_marks', mark_id=mark.mark_id) }}">
+            <div class="form-group">
+                <label>Student Profile</label>
+                <input type="text" class="form-control" value="{{ mark.roll_no }} &bull; {{ mark.full_name }}" disabled style="background: #f1f5f9;">
+            </div>
+
+            <div class="form-group">
+                <label>Curriculum Course</label>
+                <input type="text" class="form-control" value="{{ mark.subject_name }} (Max: {{ mark.max_marks }}, Pass: {{ mark.pass_marks }})" disabled style="background: #f1f5f9;">
+            </div>
+
+            <div class="form-group">
+                <label for="assessment">Assessment Iteration <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="assessment" name="assessment" class="form-control"
+                       value="{{ mark.assessment }}" required maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label for="marks_obtained">Marks Obtained <span style="color: var(--danger);">*</span></label>
+                <input type="number" id="marks_obtained" name="marks_obtained" class="form-control"
+                       min="0" max="{{ mark.max_marks }}" step="0.01"
+                       value="{{ mark.marks_obtained }}" required>
+            </div>
+
+            <div class="btn-group" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary">Update Record</button>
+                <a href="{{ url_for('manage_marks') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

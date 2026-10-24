@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block title %}Curriculum Subjects - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Curriculum Subjects</h1>
+        <p class="subtitle">Academic courses, maximum score constraints, and minimum passing criteria.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('add_marks') }}" class="btn btn-accent">+ Record Marks</a>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start;">
+    <!-- Subjects List Table -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>Subject Title</th>
+                    <th>Maximum Marks</th>
+                    <th>Passing Benchmark</th>
+                    <th>Assessments Logged</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subjects %}
+                <tr>
+                    <td>{{ sub.subject_id }}</td>
+                    <td><strong style="color: var(--primary);">{{ sub.subject_name }}</strong></td>
+                    <td><strong>{{ sub.max_marks }}</strong></td>
+                    <td><span class="badge badge-warning">{{ sub.pass_marks }} marks</span></td>
+                    <td>{{ sub.assessment_count }} record(s)</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 28px;">
+                        No curriculum subjects found. Use the form on the right to register subjects.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Subject Form Card -->
+    <div class="form-card" style="margin-bottom: 0; max-width: 100%;">
+        <h3 style="font-size: 1.15rem; color: var(--primary); margin-bottom: 6px;">Register New Course</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">Add a subject to the active academic curriculum.</p>
+
+        {% if error %}
+            <div class="alert alert-danger" style="padding: 10px 14px; font-size: 0.88rem;">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('manage_subjects') }}">
+            <div class="form-group">
+                <label for="subject_name">Subject Name <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="subject_name" name="subject_name" class="form-control"
+                       placeholder="e.g. Operating Systems" required maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label for="max_marks">Maximum Marks <span style="color: var(--danger);">*</span></label>
+                <input type="number" id="max_marks" name="max_marks" class="form-control"
+                       value="100" min="1" step="0.01" required>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">Maximum possible assessment score.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="pass_marks">Passing Benchmark <span style="color: var(--danger);">*</span></label>
+                <input type="number" id="pass_marks" name="pass_marks" class="form-control"
+                       value="35" min="0" step="0.01" required>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">Minimum score required to clear the course.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                Create Subject
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

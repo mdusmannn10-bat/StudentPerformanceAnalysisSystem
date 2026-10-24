@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}Class & Subject Analysis - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <h1>Class-Wise & Subject-Wise Analysis</h1>
+        <p class="subtitle">Aggregated performance analytics by curriculum course and class section using Pandas.</p>
+    </div>
+</div>
+
+<!-- 1. Subject-Wise Breakdown -->
+<h2>📚 Subject-Wise Academic Performance</h2>
+<div class="dashboard-grid">
+    {% for sub in subjects %}
+    <div class="card">
+        <h3>{{ sub.subject_name }}</h3>
+        <p class="number">{{ sub.average_marks }} <span style="font-size: 1rem; color: var(--text-muted);">/ {{ sub.max_marks }}</span></p>
+        <p class="desc">
+            Pass Rate: <strong style="color: {% if sub.pass_percentage >= 80 %}#28a745{% else %}#dc3545{% endif %};">{{ sub.pass_percentage }}%</strong>
+        </p>
+        <div style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <span>High: <strong>{{ sub.highest_marks }}</strong></span> &bull;
+            <span>Low: <strong>{{ sub.lowest_marks }}</strong></span> &bull;
+            <span>Passed: <strong>{{ sub.pass_count }}/{{ sub.assessment_count }}</strong></span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Subject Name</th>
+                <th>Assessments</th>
+                <th>Average Score</th>
+                <th>Highest Score</th>
+                <th>Lowest Score</th>
+                <th>Pass Count</th>
+                <th>Fail Count</th>
+                <th>Pass Rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subjects %}
+            <tr>
+                <td><strong>{{ sub.subject_name }}</strong></td>
+                <td>{{ sub.assessment_count }}</td>
+                <td><strong>{{ sub.average_marks }}</strong> / {{ sub.max_marks }}</td>
+                <td><span style="color: var(--success); font-weight: bold;">{{ sub.highest_marks }}</span></td>
+                <td><span style="color: var(--danger); font-weight: bold;">{{ sub.lowest_marks }}</span></td>
+                <td>{{ sub.pass_count }}</td>
+                <td>{{ sub.fail_count }}</td>
+                <td>
+                    <span class="badge {% if sub.pass_percentage >= 85 %}badge-pass{% elif sub.pass_percentage >= 60 %}badge-warning{% else %}badge-fail{% endif %}">
+                        {{ sub.pass_percentage }}%
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                    No subject data available.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 2. Class Section Performance -->
+<h2>🏫 Class Section (Cohort) Performance Comparison</h2>
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Section</th>
+                <th>Enrolled Students</th>
+                <th>Total Assessments</th>
+                <th>Mean Score</th>
+                <th>Highest Score</th>
+                <th>Lowest Score</th>
+                <th>Section Pass Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sec in sections %}
+            <tr>
+                <td><strong>Section {{ sec.section }}</strong></td>
+                <td>{{ sec.student_count }} students</td>
+                <td>{{ sec.assessment_count }}</td>
+                <td><strong>{{ sec.average_marks }}</strong> / 100</td>
+                <td><span style="color: var(--success); font-weight: bold;">{{ sec.highest_marks }}</span></td>
+                <td><span style="color: var(--danger); font-weight: bold;">{{ sec.lowest_marks }}</span></td>
+                <td>
+                    <span class="badge {% if sec.pass_percentage >= 85 %}badge-pass{% elif sec.pass_percentage >= 60 %}badge-warning{% else %}badge-fail{% endif %}">
+                        {{ sec.pass_percentage }}%
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                    No section data available.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- 3. Analytical Charts -->
+<h2>📊 Subject & Section Visualizations</h2>
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3>Subject Average Marks</h3>
+        {% if charts.subject_average %}
+            <img src="{{ url_for('static', filename=charts.subject_average) }}" alt="Subject Average Marks Chart">
+        {% endif %}
+    </div>
+
+    <div class="chart-card">
+        <h3>Subject Pass Percentages</h3>
+        {% if charts.subject_pass_rate %}
+            <img src="{{ url_for('static', filename=charts.subject_pass_rate) }}" alt="Subject Pass Percentage Chart">
+        {% endif %}
+    </div>
+
+    <div class="chart-card" style="grid-column: 1 / -1;">
+        <h3>Class Section Average Comparison</h3>
+        {% if charts.section_performance %}
+            <img src="{{ url_for('static', filename=charts.section_performance) }}" alt="Section Average Comparison Chart">
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

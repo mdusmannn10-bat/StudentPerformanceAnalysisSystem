@@ -1,0 +1,32 @@
+# Environment credentials
+.env
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.pytest_cache/
+
+# Test & Coverage artifacts
+.coverage
+htmlcov/
+
+# Logs & Temporary files
+*.log
+*.tmp
+
+# Operating System files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Submission / Distributable Archives & Backups
+*.zip
+_backup_pre_audit/

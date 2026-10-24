@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Performance Analysis System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a class="brand" href="{{ url_for('home') }}">
+                <span>🎓</span>
+                <span>Student Performance Analysis</span>
+                <span class="brand-badge">Academic Admin</span>
+            </a>
+
+            <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li>
+                    <a href="{{ url_for('home') }}"
+                       class="{% if request.path == url_for('home') %}active{% endif %}">
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_students') }}"
+                       class="{% if request.path.startswith('/students') or request.path.startswith('/add-student') or request.path.startswith('/edit-student') %}active{% endif %}">
+                        Student Management
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('analysis') }}"
+                       class="{% if request.path == url_for('analysis') or request.path == '/analytics' or request.path == url_for('subject_analysis') %}active{% endif %}">
+                        Analytics & Reports
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_marks') }}"
+                       class="{% if request.path.startswith('/marks') or request.path.startswith('/add-marks') or request.path.startswith('/edit-marks') %}active{% endif %}">
+                        Marks Ledger
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_subjects') }}"
+                       class="{% if request.path.startswith('/subjects') %}active{% endif %}">
+                        Subjects
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('student_report') }}"
+                       class="{% if request.path.startswith('/student-report') %}active{% endif %}">
+                        Student Report
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" style="background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: inherit; line-height: 1;">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p><strong>Student Performance Analysis System</strong> &bull; Python Flask, MySQL, Pandas, NumPy & Matplotlib &bull; Academic Year 2026</p>
+    </footer>
+
+    <script>
+        function toggleMobileNav() {
+            var nav = document.getElementById("navLinks");
+            if (nav.style.display === "flex") {
+                nav.style.display = "none";
+            } else {
+                nav.style.display = "flex";
+                nav.style.flexDirection = "column";
+                nav.style.position = "absolute";
+                nav.style.top = "64px";
+                nav.style.left = "0";
+                nav.style.right = "0";
+                nav.style.background = "#0f2b48";
+                nav.style.padding = "16px";
+            }
+        }
+
+        // Tab Switching Helper
+        function switchTab(evt, tabId) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-pane");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

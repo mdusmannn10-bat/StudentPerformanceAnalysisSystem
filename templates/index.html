@@ -1,0 +1,205 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Student Performance Analysis System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Academic Performance Dashboard</h1>
+        <p class="subtitle">Institutional performance overview, key metrics, and academic health indicators.</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">+ Enroll Student</a>
+        <a href="{{ url_for('add_marks') }}" class="btn btn-accent">+ Record Marks</a>
+    </div>
+</div>
+
+<!-- 1. Executive Summary Cards (Live Database Values) -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-title">Total Students</div>
+        <div class="kpi-value">{{ kpis.total_students }}</div>
+        <div class="kpi-desc">Registered across all sections</div>
+    </div>
+
+    <div class="kpi-card kpi-accent">
+        <div class="kpi-title">Total Subjects</div>
+        <div class="kpi-value">{{ total_subjects }}</div>
+        <div class="kpi-desc">Curriculum courses evaluated</div>
+    </div>
+
+    <div class="kpi-card kpi-success">
+        <div class="kpi-title">Average Performance</div>
+        <div class="kpi-value">{{ kpis.overall_average_percentage }}%</div>
+        <div class="kpi-desc">Cohort mean percentage score</div>
+    </div>
+
+    <div class="kpi-card {% if kpis.overall_pass_rate >= 75 %}kpi-success{% elif kpis.overall_pass_rate >= 50 %}kpi-warning{% else %}kpi-danger{% endif %}">
+        <div class="kpi-title">Overall Pass Rate</div>
+        <div class="kpi-value">{{ kpis.overall_pass_rate }}%</div>
+        <div class="kpi-desc">{{ kpis.total_passed }} passed / {{ kpis.total_evaluated }} evaluated</div>
+    </div>
+
+    <div class="kpi-card {% if kpis.students_needing_support_count > 0 %}kpi-danger{% else %}kpi-success{% endif %}">
+        <div class="kpi-title">Support Required</div>
+        <div class="kpi-value">{{ kpis.students_needing_support_count }}</div>
+        <div class="kpi-desc">Students below threshold or with backlogs</div>
+    </div>
+</div>
+
+<!-- 2. Direct Navigation Shortcuts -->
+<div class="shortcut-grid">
+    <a href="{{ url_for('manage_students') }}" class="shortcut-card">
+        <div class="shortcut-icon">👥</div>
+        <div class="shortcut-info">
+            <h3>Student Management</h3>
+            <p>Directory, enrollment profiles, and search</p>
+        </div>
+    </a>
+
+    <a href="{{ url_for('analysis') }}" class="shortcut-card">
+        <div class="shortcut-icon">📊</div>
+        <div class="shortcut-info">
+            <h3>Analytics & Reports</h3>
+            <p>Visualizations, cohort analysis, and rankings</p>
+        </div>
+    </a>
+
+    <a href="{{ url_for('manage_marks') }}" class="shortcut-card">
+        <div class="shortcut-icon">📝</div>
+        <div class="shortcut-info">
+            <h3>Marks Ledger</h3>
+            <p>Record, review, and edit assessment scores</p>
+        </div>
+    </a>
+
+    <a href="{{ url_for('manage_subjects') }}" class="shortcut-card">
+        <div class="shortcut-icon">📚</div>
+        <div class="shortcut-info">
+            <h3>Curriculum Subjects</h3>
+            <p>Course configurations and pass benchmarks</p>
+        </div>
+    </a>
+</div>
+
+<!-- 3. Focused Highlights: Toppers & Attention Areas -->
+<div class="highlight-grid">
+    <!-- Highlight Left: Top-Performing Students Spotlight -->
+    <div class="widget-card">
+        <h2>
+            <span>🏆 Top-Performing Achievers</span>
+            <a href="{{ url_for('analysis') }}" style="font-size: 0.85rem; font-weight: 500; color: var(--accent); text-decoration: none;">View All &rarr;</a>
+        </h2>
+        {% if toppers %}
+            <div class="topper-list">
+                {% for topper in toppers %}
+                <div class="topper-item">
+                    <div class="topper-left">
+                        <span class="topper-rank-medal">
+                            {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% else %}🥉{% endif %}
+                        </span>
+                        <div>
+                            <strong>{{ topper.full_name }}</strong>
+                            <div style="font-size: 0.82rem; color: var(--text-muted);">
+                                {{ topper.roll_no }} &bull; Section {{ topper.section }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topper-score">
+                        <div class="pct">{{ topper.percentage }}%</div>
+                        <span class="badge badge-grade-aplus">{{ topper.grade }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); font-size: 0.9rem; padding: 20px 0;">No evaluated student records available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Highlight Right: Subjects Needing Attention -->
+    <div class="widget-card">
+        <h2>
+            <span>⚠️ Curriculum Attention Areas</span>
+            <a href="{{ url_for('analysis') }}" style="font-size: 0.85rem; font-weight: 500; color: var(--accent); text-decoration: none;">Full Analytics &rarr;</a>
+        </h2>
+        {% if kpis.attention_subjects %}
+            <div class="topper-list">
+                {% for sub in kpis.attention_subjects %}
+                <div class="topper-item">
+                    <div>
+                        <strong>{{ sub.subject_name }}</strong>
+                        <div style="font-size: 0.82rem; color: var(--text-muted);">
+                            Assessments: {{ sub.assessment_count }} &bull; Mean Score: {{ sub.average_marks }}/{{ sub.max_marks }}
+                        </div>
+                    </div>
+                    <div class="topper-score">
+                        <span class="badge {% if sub.pass_percentage >= 85 %}badge-warning{% else %}badge-fail{% endif %}">
+                            {{ sub.pass_percentage }}% Pass
+                        </span>
+                        <div style="font-size: 0.78rem; color: var(--danger-text); margin-top: 3px;">
+                            {{ sub.fail_count }} backlog(s)
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="padding: 24px; text-align: center; color: var(--success-text); background: var(--success-bg); border-radius: var(--radius-sm);">
+                <strong>All courses performing well!</strong>
+                <p style="font-size: 0.85rem; margin-top: 4px;">100% pass rate achieved across all curriculum subjects.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 4. Recent Assessment Updates Ledger -->
+<div class="widget-card">
+    <h2>
+        <span>Recent Assessment Updates</span>
+        <a href="{{ url_for('manage_marks') }}" style="font-size: 0.85rem; font-weight: 500; color: var(--accent); text-decoration: none;">Open Marks Ledger &rarr;</a>
+    </h2>
+    <div class="table-responsive" style="margin-bottom: 0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Subject</th>
+                    <th>Assessment</th>
+                    <th>Marks Obtained</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in recent_marks %}
+                <tr>
+                    <td><strong>{{ m.roll_no }}</strong></td>
+                    <td>{{ m.full_name }}</td>
+                    <td>{{ m.subject_name }}</td>
+                    <td><span class="badge" style="background: #f1f5f9; color: var(--text-muted);">{{ m.assessment }}</span></td>
+                    <td><strong>{{ m.marks_obtained }}</strong> / {{ m.max_marks }}</td>
+                    <td>
+                        {% if m.marks_obtained >= m.pass_marks %}
+                            <span class="badge badge-pass">Pass</span>
+                        {% else %}
+                            <span class="badge badge-fail">Fail</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{{ url_for('student_report', student_id=m.student_id) }}" class="btn btn-outline btn-sm">Report</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                        No assessment entries recorded yet. Click "+ Record Marks" to add records.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
